@@ -13,6 +13,12 @@ import {
   MapPin,
   Navigation,
   Zap,
+  Brain,
+  CloudRain,
+  Wind,
+  Eye,
+  ShieldAlert,
+  Sparkles,
 } from 'lucide-react'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
@@ -48,6 +54,23 @@ interface RouteOptimization {
   riskReduction: number
   confidence: number
   distance: string
+}
+
+interface AIRecommendation {
+  recommended_route: string
+  reason: string
+  estimated_delay_hours: number
+  risk_level: 'low' | 'medium' | 'high'
+  suggestions: string[]
+  weather?: {
+    condition: string
+    temperature: number | null
+    rainfall: number
+    windSpeed: number
+    visibility: number
+    storm: boolean
+  }
+  source?: string
 }
 
 // ---- Helpers ----
@@ -106,6 +129,28 @@ export default function SupplyChainDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showOptimized, setShowOptimized] = useState(false)
   const [applied, setApplied] = useState(false)
+  const [aiRec, setAiRec] = useState<AIRecommendation | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+
+  async function fetchAIRecommendation() {
+    if (!id) return
+    setAiLoading(true)
+    setAiError(null)
+    try {
+      const res = await fetch(`${API_BASE}/api/supply-chain/ai-route/${id}`)
+      const json = await res.json()
+      if (json.success) {
+        setAiRec(json.data)
+      } else {
+        setAiError(json.message || 'AI analysis failed')
+      }
+    } catch {
+      setAiError('Could not reach AI service')
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -434,6 +479,151 @@ export default function SupplyChainDetailPage() {
           </button>
         </motion.div>
       )}
+
+      {/* ── AI Route Analysis ─────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-surface-container border border-outline-variant p-6 space-y-5"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-on-surface flex items-center gap-2">
+            <Brain className="w-5 h-5 text-violet-400" />
+            AI Route Analysis
+            <span className="text-xs px-2 py-0.5 bg-violet-400/10 text-violet-400 border border-violet-400/30">
+              Gemini AI
+            </span>
+          </h2>
+          <button
+            onClick={fetchAIRecommendation}
+            disabled={aiLoading}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+          >
+            {aiLoading ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Analysing…</>
+            ) : (
+              <><Sparkles className="w-4 h-4" /> Run AI Analysis</>
+            )}
+          </button>
+        </div>
+
+        {/* idle state */}
+        {!aiRec && !aiLoading && !aiError && (
+          <div className="text-center py-8 text-on-surface-variant border border-dashed border-white/10">
+            <Brain className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">Click <strong>Run AI Analysis</strong> to get Gemini-powered route recommendations</p>
+            <p className="text-xs mt-1 opacity-60">Analyses weather, risk, and route conditions in real-time</p>
+          </div>
+        )}
+
+        {/* error */}
+        {aiError && (
+          <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            {aiError}
+          </div>
+        )}
+
+        {/* result */}
+        {aiRec && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-5"
+          >
+            {/* Source badge */}
+            {aiRec.source && (
+              <p className="text-xs text-on-surface-variant">
+                Source:{' '}
+                <span className={`px-1.5 py-0.5 border text-xs ${
+                  aiRec.source === 'cache'
+                    ? 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10'
+                    : aiRec.source === 'rule_based'
+                    ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'
+                    : 'text-violet-400 border-violet-400/30 bg-violet-400/10'
+                }`}>
+                  {aiRec.source === 'cache' ? '⚡ cached' : aiRec.source === 'rule_based' ? '📐 rule-based' : `🤖 ${aiRec.source}`}
+                </span>
+              </p>
+            )}
+
+            {/* Top row — route + risk + delay */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2 bg-surface-container-high p-4 space-y-2">
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider">Recommended Route</p>
+                <p className="text-on-surface font-semibold flex items-center gap-1.5 flex-wrap">
+                  <MapPin className="w-4 h-4 text-violet-400 shrink-0" />
+                  {aiRec.recommended_route}
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <div className={`flex-1 p-4 border text-center ${
+                  aiRec.risk_level === 'high'
+                    ? 'bg-red-400/10 border-red-400/30'
+                    : aiRec.risk_level === 'medium'
+                    ? 'bg-yellow-400/10 border-yellow-400/30'
+                    : 'bg-emerald-400/10 border-emerald-400/30'
+                }`}>
+                  <ShieldAlert className={`w-5 h-5 mx-auto mb-1 ${
+                    aiRec.risk_level === 'high' ? 'text-red-400' : aiRec.risk_level === 'medium' ? 'text-yellow-400' : 'text-emerald-400'
+                  }`} />
+                  <p className={`text-lg font-bold uppercase ${
+                    aiRec.risk_level === 'high' ? 'text-red-400' : aiRec.risk_level === 'medium' ? 'text-yellow-400' : 'text-emerald-400'
+                  }`}>{aiRec.risk_level}</p>
+                  <p className="text-xs text-on-surface-variant">Risk Level</p>
+                </div>
+                <div className="flex-1 bg-surface-container-high p-4 text-center">
+                  <Clock className="w-5 h-5 mx-auto mb-1 text-amber-400" />
+                  <p className="text-lg font-bold text-amber-400">+{aiRec.estimated_delay_hours}h</p>
+                  <p className="text-xs text-on-surface-variant">Est. Delay</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Reason */}
+            <div className="bg-surface-container-high p-4 border-l-2 border-violet-400">
+              <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">AI Reasoning</p>
+              <p className="text-sm text-on-surface">{aiRec.reason}</p>
+            </div>
+
+            {/* Weather snapshot */}
+            {aiRec.weather && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { icon: CloudRain, label: 'Rainfall', value: `${aiRec.weather.rainfall} mm/hr`, color: 'text-blue-400' },
+                  { icon: Wind, label: 'Wind', value: `${aiRec.weather.windSpeed} km/h`, color: 'text-cyan-400' },
+                  { icon: Eye, label: 'Visibility', value: `${aiRec.weather.visibility} km`, color: 'text-emerald-400' },
+                  { icon: AlertTriangle, label: 'Storm', value: aiRec.weather.storm ? 'ALERT' : 'Clear', color: aiRec.weather.storm ? 'text-red-400' : 'text-emerald-400' },
+                ].map((w) => (
+                  <div key={w.label} className="bg-surface-container-high p-3 flex items-center gap-2">
+                    <w.icon className={`w-4 h-4 shrink-0 ${w.color}`} />
+                    <div>
+                      <p className="text-xs text-on-surface-variant">{w.label}</p>
+                      <p className={`text-sm font-semibold ${w.color}`}>{w.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Suggestions */}
+            {aiRec.suggestions.length > 0 && (
+              <div>
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-3">Operational Suggestions</p>
+                <ul className="space-y-2">
+                  {aiRec.suggestions.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-on-surface">
+                      <CheckCircle className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   )
 }

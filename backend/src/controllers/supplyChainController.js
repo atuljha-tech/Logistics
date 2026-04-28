@@ -2,6 +2,9 @@ import { supabase, isNetworkError } from '../config/supabase.js'
 import { MOCK_SHIPMENTS, MOCK_RISKS } from '../constants/mockData.js'
 import { deriveCity } from '../utils/location.js'
 import { store } from '../utils/mockStore.js'
+import { getAIRouteRecommendation } from '../services/geminiService.js'
+
+const WEATHER_API_KEY = process.env.WEATHER_API_KEY
 
 function mapToSupplyChain(s) {
   const origin = deriveCity(s.sender_city, s.sender_address)
@@ -143,5 +146,103 @@ export async function getOptimizedRoute(req, res) {
         distance: '650 km',
       },
     })
+  }
+}
+
+// ── Weather fetch helper ──────────────────────────────────────────────────────
+
+async function fetchWeather(city) {
+  if (!WEATHER_API_KEY) return null
+  try {
+    const res = await fetch(
+      `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(city)}&aqi=no`,
+      { signal: AbortSignal.timeout(6000) }
+    )
+    if (!res.ok) return null
+    const d = await res.json()
+    const c = d?.current
+    return {
+      condition: c?.condition?.text ?? 'Unknown',
+      temperature: c?.temp_c ?? null,
+      rainfall: c?.precip_mm ?? 0,
+      windSpeed: c?.wind_kph ?? 0,
+      visibility: c?.vis_km ?? 10,
+      storm: (c?.precip_mm ?? 0) > 30 || (c?.wind_kph ?? 0) > 80,
+    }
+  } catch {
+    return null
+  }
+}
+
+// ── AI Route Recommendation ───────────────────────────────────────────────────
+
+export async function getAIRouteRecommendationHandler(req, res) {
+  try {
+    const { id } = req.params
+
+    // 1. Get shipment data
+    let shipment = null
+
+    try {
+      const { data, error } = await supabase
+        .from('shipments')
+        .select('id, sender_city, sender_address, receiver_city, receiver_address, status, weight, package_type')
+        .eq('id', id)
+        .single()
+      if (!error && data) shipment = data
+    } catch (_) {}
+
+    // Fallback to mock store
+    if (!shipment) {
+      shipment = store.shipments.find(s => s.id === id) || null
+    }
+
+    // Fallback to supply-chain mock
+    if (!shipment) {
+      const mock = MOCK_SHIPMENTS.find(s => s.id === id)
+      if (mock) {
+        shipment = {
+          sender_city: mock.origin,
+          receiver_city: mock.destination,
+          status: mock.status,
+          weight: 10,
+          package_type: 'Standard',
+        }
+      }
+    }
+
+    if (!shipment) {
+      return res.status(404).json({ success: false, message: 'Shipment not found' })
+    }
+
+    const origin = deriveCity(shipment.sender_city, shipment.sender_address) || 'Origin'
+    const destination = deriveCity(shipment.receiver_city, shipment.receiver_address) || 'Destination'
+
+    // 2. Fetch weather for origin (parallel, non-blocking)
+    const weatherData = await fetchWeather(origin)
+
+    // 3. Call Gemini service
+    const result = await getAIRouteRecommendation({
+      shipmentId: id,
+      origin,
+      destination,
+      weatherData,
+      shipmentPriority: shipment.weight > 50 ? 'high' : 'standard',
+    })
+
+    return res.json({
+      success: true,
+      data: {
+        ...result.data,
+        shipmentId: id,
+        origin,
+        destination,
+        weather: weatherData,
+        source: result.source ?? result.data?.source,
+      },
+    })
+  } catch (err) {
+    console.error('[AI Route] Error:', err.message)
+    return res.status(500).json({ success: false, message: 'Failed to generate AI recommendation' })
   }
 }
