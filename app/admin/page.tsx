@@ -49,8 +49,12 @@ export default function AdminPage() {
   const [liveStats, setLiveStats] = useState<LiveStats | null>(null)
   const [recentShipments, setRecentShipments] = useState<any[]>([])
   const [statsLoading, setStatsLoading] = useState(true)
+  const [userName, setUserName] = useState('Admin')
 
   useEffect(() => {
+    const stored = localStorage.getItem('user_name')
+    if (stored) setUserName(stored)
+  }, [])
     Promise.all([
       fetch(`${API_BASE}/api/statistics`).then(r => r.json()).catch(() => null),
       fetch(`${API_BASE}/api/shipments?limit=5`).then(r => r.json()).catch(() => null),
@@ -77,7 +81,7 @@ export default function AdminPage() {
       {/* A. Welcome Header */}
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3">
-          <h1 className="text-4xl font-pepi-thin text-on-surface">Welcome back, Alex</h1>
+          <h1 className="text-4xl font-pepi-thin text-on-surface">Welcome back, {userName}</h1>
           <span className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-1 font-biotif-pro">ADMIN</span>
         </div>
         <p className="text-on-surface-variant font-biotif-pro mt-1">{dateStr}</p>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -33,6 +33,14 @@ const navItems = [
 export const AdminSidebar: React.FC = () => {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [userName, setUserName] = useState('Admin')
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user_name')
+    if (stored) setUserName(stored)
+  }, [])
+
+  const initials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
   const isActive = (href: string) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
@@ -101,10 +109,10 @@ export const AdminSidebar: React.FC = () => {
         <div className="p-6 border-t border-white/10 space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
-              A
+              {initials}
             </div>
             <div>
-              <p className="text-sm font-medium text-on-surface">Alex Morgan</p>
+              <p className="text-sm font-medium text-on-surface">{userName}</p>
               <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5">admin</span>
             </div>
           </div>
