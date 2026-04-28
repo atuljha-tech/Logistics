@@ -55,6 +55,8 @@ export default function AdminPage() {
     const stored = localStorage.getItem('user_name')
     if (stored) setUserName(stored)
   }, [])
+
+  useEffect(() => {
     Promise.all([
       fetch(`${API_BASE}/api/statistics`).then(r => r.json()).catch(() => null),
       fetch(`${API_BASE}/api/shipments?limit=5`).then(r => r.json()).catch(() => null),

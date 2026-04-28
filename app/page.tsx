@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import {
   Truck,
   BarChart3,
@@ -11,6 +12,27 @@ import {
   ArrowRight,
   CheckCircle,
 } from 'lucide-react'
+
+// Lazy-load WorldMap so it never blocks initial paint
+const WorldMap = dynamic(
+  () => import('@/components/ui/world-map').then((m) => m.WorldMap),
+  { ssr: false }
+)
+
+const LOGISTICS_DOTS = [
+  // Kolkata → New York
+  { start: { lat: 22.57, lng: 88.36 }, end: { lat: 40.71, lng: -74.00 } },
+  // London → Delhi
+  { start: { lat: 51.50, lng: -0.12 }, end: { lat: 28.61, lng: 77.20 } },
+  // Dubai → Tokyo
+  { start: { lat: 25.20, lng: 55.27 }, end: { lat: 35.68, lng: 139.69 } },
+  // Mumbai → Los Angeles
+  { start: { lat: 19.07, lng: 72.87 }, end: { lat: 34.05, lng: -118.24 } },
+  // Singapore → Frankfurt
+  { start: { lat: 1.35, lng: 103.82 }, end: { lat: 50.11, lng: 8.68 } },
+  // Shanghai → Rotterdam
+  { start: { lat: 31.23, lng: 121.47 }, end: { lat: 51.92, lng: 4.47 } },
+]
 
 // Self-contained inline flip card for landing page
 // (does not use the dashboard FlipCard which expects FlipCardData shape)
@@ -131,136 +153,147 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          
-          {/* Left Column - Text Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
-            {/* Main Heading */}
-            <div className="space-y-4">
-              <h1 className="text-7xl sm:text-8xl font-pepi-thin leading-none text-on-surface">
-                Supply Chain
-                <br />
-                <span className="text-primary">Reimagined</span>
-              </h1>
-              <p className="text-xl text-on-surface-variant max-w-xl font-biotif-pro">
-                The intelligent platform for modern logistics. Real-time tracking, predictive analytics, 
-                and autonomous optimization—all in one place.
-              </p>
-            </div>
+      {/* ── Hero Section ─────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link
-                href="/dashboard"
-                className="px-8 py-4 bg-primary text-on-primary font-biotif-pro font-semibold hover:bg-primary/90 transition-all duration-200 flex items-center justify-center gap-2 group w-fit"
-              >
-                Launch Dashboard
-                <motion.span
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </motion.span>
-              </Link>
-              <Link
-                href="/signup"
-                className="px-8 py-4 border border-white/20 hover:border-white/40 text-on-surface font-biotif-pro font-semibold flex items-center justify-center transition-colors text-center"
-              >
-                Start Free Trial
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Right Column - Visual/Illustration */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative h-[400px] lg:h-[600px] hidden md:block"
-          >
-            {/* Animated Overlay Elements */}
-            <motion.div
-              className="absolute top-0 right-0 w-48 h-48 border-2 border-primary/20"
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 20,
-                repeat: Infinity,
-                ease: 'linear',
-              }}
-            />
-
-            {/* Floating Cards Animation */}
-            <motion.div
-              className="absolute bottom-20 left-10 px-4 py-3 bg-surface-container-low border border-white/10 max-w-xs"
-              animate={{
-                y: [0, -20, 0],
-                rotate: [0, 2, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              <p className="text-sm font-biotif-pro text-on-surface-variant">
-                🚚 <span className="text-on-surface font-semibold">Live Tracking</span>
-              </p>
-            </motion.div>
-
-            <motion.div
-              className="absolute top-32 right-0 px-4 py-3 bg-surface-container-low border border-white/10 max-w-xs"
-              animate={{
-                y: [0, 20, 0],
-                rotate: [0, -2, 0],
-              }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: 0.5,
-              }}
-            >
-              <p className="text-sm font-biotif-pro text-on-surface-variant">
-                📊 <span className="text-on-surface font-semibold">Real Analytics</span>
-              </p>
-            </motion.div>
-          </motion.div>
+        {/* LAYER 1 — World Map background */}
+        <div className="absolute inset-0 scale-110 opacity-30 sm:opacity-35 pointer-events-none select-none">
+          <WorldMap dots={LOGISTICS_DOTS} lineColor="#0ea5e9" />
         </div>
 
-        {/* Stats Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-6"
-        >
-          {stats.map((stat, i) => (
+        {/* LAYER 2 — Gradient + blur overlay */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Radial vignette so edges fade to black */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,transparent_30%,rgba(0,0,0,0.85)_100%)]" />
+          {/* Top + bottom hard fades so map doesn't bleed into nav/stats */}
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+          {/* Left-side darkening so text stays readable */}
+          <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
+        </div>
+
+        {/* LAYER 3 — Hero content (unchanged) */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+            {/* Left Column - Text Content */}
             <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
-              className="border border-white/10 bg-surface-container-low/50 p-6"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-8"
             >
-              <p className="text-3xl sm:text-4xl font-pepi-thin text-primary mb-2">
-                {stat.value}
-              </p>
-              <p className="text-sm text-on-surface-variant font-biotif-pro">
-                {stat.label}
-              </p>
+              {/* Main Heading */}
+              <div className="space-y-4">
+                <h1 className="text-7xl sm:text-8xl font-pepi-thin leading-none text-on-surface">
+                  Supply Chain
+                  <br />
+                  <span className="text-primary">Reimagined</span>
+                </h1>
+                <p className="text-xl text-on-surface-variant max-w-xl font-biotif-pro">
+                  The intelligent platform for modern logistics. Real-time tracking, predictive analytics,
+                  and autonomous optimization—all in one place.
+                </p>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Link
+                  href="/dashboard"
+                  className="px-8 py-4 bg-primary text-on-primary font-biotif-pro font-semibold hover:bg-primary/90 transition-all duration-200 flex items-center justify-center gap-2 group w-fit"
+                >
+                  Launch Dashboard
+                  <motion.span
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </motion.span>
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-8 py-4 border border-white/20 hover:border-white/40 text-on-surface font-biotif-pro font-semibold flex items-center justify-center transition-colors text-center"
+                >
+                  Start Free Trial
+                </Link>
+              </div>
             </motion.div>
-          ))}
-        </motion.div>
+
+            {/* Right Column - Floating labels over the map */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative h-[400px] lg:h-[600px] hidden md:block"
+            >
+              {/* Rotating border accent */}
+              <motion.div
+                className="absolute top-0 right-0 w-48 h-48 border-2 border-primary/20"
+                animate={{ rotate: [0, 360], scale: [1, 1.1, 1] }}
+                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              />
+
+              {/* Floating label — Live Tracking */}
+              <motion.div
+                className="absolute bottom-20 left-10 px-4 py-3 bg-surface-container-low/80 backdrop-blur-sm border border-white/10 max-w-xs"
+                animate={{ y: [0, -20, 0], rotate: [0, 2, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <p className="text-sm font-biotif-pro text-on-surface-variant">
+                  🚚 <span className="text-on-surface font-semibold">Live Tracking</span>
+                </p>
+              </motion.div>
+
+              {/* Floating label — Real Analytics */}
+              <motion.div
+                className="absolute top-32 right-0 px-4 py-3 bg-surface-container-low/80 backdrop-blur-sm border border-white/10 max-w-xs"
+                animate={{ y: [0, 20, 0], rotate: [0, -2, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              >
+                <p className="text-sm font-biotif-pro text-on-surface-variant">
+                  📊 <span className="text-on-surface font-semibold">Real Analytics</span>
+                </p>
+              </motion.div>
+
+              {/* Extra floating label — AI Route */}
+              <motion.div
+                className="absolute top-64 left-20 px-4 py-3 bg-violet-500/10 backdrop-blur-sm border border-violet-400/20 max-w-xs"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0.4, 0.9, 0.4], y: [0, -12, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+              >
+                <p className="text-sm font-biotif-pro text-violet-300/80">
+                  🤖 <span className="font-semibold">AI Route Analysis</span>
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-6"
+          >
+            {stats.map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
+                className="border border-white/10 bg-surface-container-low/50 p-6"
+              >
+                <p className="text-3xl sm:text-4xl font-pepi-thin text-primary mb-2">
+                  {stat.value}
+                </p>
+                <p className="text-sm text-on-surface-variant font-biotif-pro">
+                  {stat.label}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* Features Section */}
