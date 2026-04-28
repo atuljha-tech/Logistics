@@ -53,6 +53,12 @@ export default function UserDashboardPage() {
   const [recentShipments, setRecentShipments] = useState<any[]>([])
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [userName, setUserName] = useState('there')
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user_name')
+    if (stored) setUserName(stored.split(' ')[0])
+  }, [])
 
   useEffect(() => {
     Promise.all([
@@ -84,7 +90,7 @@ export default function UserDashboardPage() {
       {/* A. Welcome Header */}
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-4xl font-pepi-thin text-on-surface">
-          {getGreeting()}, Sam 👋
+          {getGreeting()}, {userName} 👋
         </h1>
         <p className="text-on-surface-variant font-biotif-pro mt-1">
           {stats ? (

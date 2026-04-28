@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Bell, Settings, Shield, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 
@@ -9,6 +9,20 @@ interface AdminTopBarProps {
 }
 
 export const AdminTopBar: React.FC<AdminTopBarProps> = ({ title = 'Admin Dashboard' }) => {
+  const [userName, setUserName] = useState('Admin')
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user_name')
+    if (stored) setUserName(stored)
+  }, [])
+
+  const initials = userName
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
   return (
     <div className="fixed top-0 left-0 md:left-64 right-0 h-20 flex items-center justify-between px-6 border-b border-white/10 z-30 backdrop-blur-sm bg-[rgba(26,26,26,0.3)]">
       <div className="flex items-center gap-3">
@@ -49,9 +63,9 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({ title = 'Admin Dashboa
 
         <button className="flex items-center gap-2 px-3 py-2 border border-white/10 hover:border-white/20 transition-colors">
           <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
-            A
+            {initials}
           </div>
-          <span className="hidden sm:inline text-sm font-biotif-pro text-on-surface">Alex Morgan</span>
+          <span className="hidden sm:inline text-sm font-biotif-pro text-on-surface">{userName}</span>
           <ChevronDown className="w-4 h-4 text-on-surface-variant" />
         </button>
       </div>

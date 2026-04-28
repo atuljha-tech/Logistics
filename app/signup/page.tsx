@@ -56,6 +56,8 @@ export default function SignUpPage() {
 
     // Simulate API call
     setTimeout(() => {
+      localStorage.setItem('user_name', formData.name.trim())
+      localStorage.setItem('user_email', formData.email.trim())
       router.push('/dashboard')
       setIsLoading(false)
     }, 1500)

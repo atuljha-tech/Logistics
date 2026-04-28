@@ -23,6 +23,13 @@ export default function SignInPage() {
     // Simulate API call
     setTimeout(() => {
       if (email && password.length >= 6) {
+        // Derive a display name from the email (part before @)
+        const namePart = email.split('@')[0]
+        const displayName = namePart
+          .replace(/[._-]/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+        localStorage.setItem('user_name', displayName)
+        localStorage.setItem('user_email', email)
         router.push('/dashboard')
       } else {
         setError('Please enter valid credentials')

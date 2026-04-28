@@ -9,7 +9,7 @@ import { Search, Download, Plus, Eye, Zap, Loader2, AlertTriangle } from 'lucide
 type FilterType = 'all' | 'in-transit' | 'delivered' | 'pending' | 'delayed'
 type RiskLevel = 'all' | 'low' | 'medium' | 'high'
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 
 interface SupplyShipment {
   id: string

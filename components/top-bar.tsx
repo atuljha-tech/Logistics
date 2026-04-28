@@ -1,10 +1,9 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Bell, Settings, User } from 'lucide-react'
 import Link from 'next/link'
 import { GlassPanel } from './glass-panel'
-import { mockUser } from '@/lib/data'
 
 interface TopBarProps {
   title?: string
@@ -15,6 +14,13 @@ export const TopBar: React.FC<TopBarProps> = ({
   title,
   showNotifications = true,
 }) => {
+  const [userName, setUserName] = useState('User')
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user_name')
+    if (stored) setUserName(stored)
+  }, [])
+
   return (
     <GlassPanel className="fixed top-0 left-0 md:left-64 right-0 h-20 flex items-center justify-between px-6 border-b border-t-0 border-l-0 border-r-0 rounded-none z-30 backdrop-blur-md bg-[rgba(26,26,26,0.3)]">
       <div>
@@ -54,7 +60,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         <button className="flex items-center gap-2 px-3 py-2 border border-white/10 hover:border-white/20 transition-colors">
           <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500" />
-          <span className="hidden sm:inline text-body-md text-on-surface">{mockUser.name}</span>
+          <span className="hidden sm:inline text-body-md text-on-surface">{userName}</span>
           <User className="w-4 h-4 text-on-surface-variant" />
         </button>
       </div>
