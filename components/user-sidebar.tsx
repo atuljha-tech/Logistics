@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -32,6 +32,16 @@ const navItems = [
 export const UserSidebar: React.FC = () => {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [userName, setUserName] = useState('User')
+  const [userInitial, setUserInitial] = useState('U')
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user_name')
+    if (stored) {
+      setUserName(stored)
+      setUserInitial(stored.charAt(0).toUpperCase())
+    }
+  }, [])
 
   const isActive = (href: string) =>
     href === '/user-dashboard' ? pathname === '/user-dashboard' : pathname.startsWith(href)
@@ -88,10 +98,10 @@ export const UserSidebar: React.FC = () => {
         <div className="p-6 border-t border-white/10 space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
-              S
+              {userInitial}
             </div>
             <div>
-              <p className="text-sm font-medium text-on-surface">Sam Chen</p>
+              <p className="text-sm font-medium text-on-surface">{userName}</p>
               <Link href="/user-dashboard/profile" className="text-xs text-primary hover:underline">
                 View Profile
               </Link>

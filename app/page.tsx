@@ -219,53 +219,14 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Right Column - Floating labels over the map */}
+            {/* Right Column - Empty space for map background */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative h-[400px] lg:h-[600px] hidden md:block"
             >
-              {/* Rotating border accent */}
-              <motion.div
-                className="absolute top-0 right-0 w-48 h-48 border-2 border-primary/20"
-                animate={{ rotate: [0, 360], scale: [1, 1.1, 1] }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-              />
-
-              {/* Floating label — Live Tracking */}
-              <motion.div
-                className="absolute bottom-20 left-10 px-4 py-3 bg-surface-container-low/80 backdrop-blur-sm border border-white/10 max-w-xs"
-                animate={{ y: [0, -20, 0], rotate: [0, 2, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <p className="text-sm font-biotif-pro text-on-surface-variant">
-                  🚚 <span className="text-on-surface font-semibold">Live Tracking</span>
-                </p>
-              </motion.div>
-
-              {/* Floating label — Real Analytics */}
-              <motion.div
-                className="absolute top-32 right-0 px-4 py-3 bg-surface-container-low/80 backdrop-blur-sm border border-white/10 max-w-xs"
-                animate={{ y: [0, 20, 0], rotate: [0, -2, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-              >
-                <p className="text-sm font-biotif-pro text-on-surface-variant">
-                  📊 <span className="text-on-surface font-semibold">Real Analytics</span>
-                </p>
-              </motion.div>
-
-              {/* Extra floating label — AI Route */}
-              <motion.div
-                className="absolute top-64 left-20 px-4 py-3 bg-violet-500/10 backdrop-blur-sm border border-violet-400/20 max-w-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0.4, 0.9, 0.4], y: [0, -12, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-              >
-                <p className="text-sm font-biotif-pro text-violet-300/80">
-                  🤖 <span className="font-semibold">AI Route Analysis</span>
-                </p>
-              </motion.div>
+              {/* Just empty space to let the world map show through */}
             </motion.div>
           </div>
 
