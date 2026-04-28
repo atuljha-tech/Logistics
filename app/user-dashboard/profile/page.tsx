@@ -1,15 +1,25 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 export default function ProfilePage() {
-  const [name, setName] = useState('Sam Chen')
-  const [email, setEmail] = useState('sam@smartlogistics.com')
+  const [name, setName] = useState('User')
+  const [email, setEmail] = useState('user@smartlogistics.com')
   const [dept, setDept] = useState('Logistics')
   const [saved, setSaved] = useState(false)
 
+  useEffect(() => {
+    const storedName = localStorage.getItem('user_name')
+    const storedEmail = localStorage.getItem('user_email')
+    if (storedName) setName(storedName)
+    if (storedEmail) setEmail(storedEmail)
+  }, [])
+
   const handleSave = () => {
+    // Save to localStorage
+    localStorage.setItem('user_name', name)
+    localStorage.setItem('user_email', email)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
