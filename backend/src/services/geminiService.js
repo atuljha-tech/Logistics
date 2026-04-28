@@ -10,7 +10,7 @@ const GEMINI_KEYS = [
   process.env.GEMINI_API_KEY_5,
 ].filter(Boolean)
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 const TIMEOUT_MS = 12000
 const COOLDOWN_MS = 10 * 60 * 1000 // 10 minutes
 
@@ -74,6 +74,10 @@ async function callGemini(apiKey, prompt) {
       const err = new Error(`quota_exceeded:${res.status}`)
       err.quota = true
       throw err
+    }
+
+    if (res.status === 503 || res.status === 500) {
+      throw new Error(`server_overloaded:${res.status}`)
     }
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
